@@ -3,10 +3,10 @@ from utils.logger import log_info, log_error, log_warning
 
 _playwright_instance = None
 
-async def connect_cdp(cdp_url: str = "http://localhost:9222"):
+async def connect_cdp(cdp_url: str = "http://127.0.0.1:9222"):
     """
     Kết nối tới Google Chrome đang mở sẵn qua cổng CDP 9222.
-    Trả về tuple: (browser, context, page)
+    Dùng 127.0.0.1 thay vì localhost để tránh lỗi IPv6 ::1 trên Windows.
     """
     global _playwright_instance
     try:
@@ -16,21 +16,21 @@ async def connect_cdp(cdp_url: str = "http://localhost:9222"):
         browser = await _playwright_instance.chromium.connect_over_cdp(cdp_url)
         
         if not browser.contexts:
-            log_error("X Không tìm thấy Context/Profile nào trong Chrome!")
+            log_error("❌ Không tìm thấy Context/Profile nào trong Chrome!")
             return None, None, None
             
         context = browser.contexts[0]
         pages = context.pages
         
-        # Lấy tab đang mở hoặc tạo tab mới nếu chưa có
+        # Lấy tab đang mở hoặc tạo tab mới
         page = pages[0] if pages else await context.new_page()
             
         log_info("✅ Kết nối Chrome CDP thành công!")
         return browser, context, page
         
     except Exception as e:
-        log_error(f"X Lỗi kết nối Chrome CDP ({cdp_url}): {str(e)}")
-        log_warning("⚠️ Hãy đảm bảo bạn đã mở Chrome bằng file login_setup.py hoặc lệnh mở CDP Port 9222 trước!")
+        log_error(f"❌ Lỗi kết nối Chrome CDP ({cdp_url}): {str(e)}")
+        log_warning("⚠️ Hãy chắc chắn bạn đã chạy 'python login_setup.py' để mở Chrome trước!")
         return None, None, None
 
 async def close_cdp(browser: Browser):
