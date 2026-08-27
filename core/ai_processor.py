@@ -1,19 +1,26 @@
-import os
 import json
+import logging
+from typing import Dict, Any
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY
 
+logger = logging.getLogger("AIProcessor")
+
 class AIProcessor:
-    def __init__(self):
+    def __init__(self) -> None:
         if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY chưa được thiết lập trong file .env")
+            logger.error("GEMINI_API_KEY chưa được cấu hình trong file .env")
+            raise ValueError("GEMINI_API_KEY chưa được thiết lập!")
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
-    def process_zalo_message(self, raw_message: str) -> dict:
+    def process_zalo_message(self, raw_message: str) -> Dict[str, Any]:
         """
-        Phân tích tin nhắn Zalo bất động sản và tạo nội dung đăng Facebook
+        Phân tích tin nhắn Zalo bất động sản và chuyển đổi thành dạng bài đăng Facebook.
         """
+        if not raw_message or not raw_message.strip():
+            return self._default_fallback(raw_message)
+
         prompt = f"""
         Bạn là một chuyên gia marketing bất động sản. Hãy phân tích tin nhắn thô sau từ Zalo:
         "{raw_message}"
@@ -33,35 +40,37 @@ class AIProcessor:
                 model='gemini-2.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(
-                    response_mime_type="application/json"
+                    response_mime_type="application/json",
+                    temperature=0.2
                 )
             )
-            
-            # An toàn chống crash nếu Gemini chặn safety filter
+
             if not response or not response.text:
-                print("[AI WARNING] AI không trả về văn bản (có thể bị chặn bởi bộ lọc nội dung).")
-                return {
-                    "is_real_estate": False,
-                    "title": "",
-                    "price": "",
-                    "location": "",
-                    "fb_content": raw_message
-                }
+                logger.warning("Gemini API trả về response trống hoặc bị chặn bởi Safety Filter.")
+                return self._default_fallback(raw_message)
 
-            text_response = response.text.strip()
-            return json.loads(text_response)
+            data = json.loads(response.text.strip())
+            
+            # Validate cấu trúc JSON đầu ra
+            required_keys = ["is_real_estate", "title", "price", "location", "fb_content"]
+            for key in required_keys:
+                if key not in data:
+                    data[key] = "" if key != "is_real_estate" else False
 
+            return data
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Lỗi parse JSON từ kết quả AI: {e}")
+            return self._default_fallback(raw_message)
         except Exception as e:
-            print(f"[AI ERROR] Lỗi khi xử lý với Gemini: {e}")
-            return {
-                "is_real_estate": False,
-                "title": "",
-                "price": "",
-                "location": "",
-                "fb_content": raw_message
-            }
+            logger.error(f"Lỗi không xác định khi gọi Gemini API: {e}", exc_info=True)
+            return self._default_fallback(raw_message)
 
-if __name__ == "__main__":
-    ai = AIProcessor()
-    test_res = ai.process_zalo_message("Bán nhà Cầu Giấy 50m2 x 5 tầng, giá 6.5 tỷ, LH 0987654321")
-    print(json.dumps(test_res, ensure_ascii=False, indent=2))
+    def _default_fallback(self, raw_message: str) -> Dict[str, Any]:
+        return {
+            "is_real_estate": False,
+            "title": "",
+            "price": "",
+            "location": "",
+            "fb_content": raw_message
+        }
