@@ -6,23 +6,23 @@ echo ============================================
 echo           KHỞI CHẠY FB AUTOMATION
 echo ============================================
 
-:: Kiểm tra cổng 9222
+:: Kiểm tra xem Chrome CDP 9222 đã hoạt động chưa
 netstat -ano | findstr /C:":9222 " > nul
-if errorlevel 1 goto LAUNCH_CHROME
+if not errorlevel 1 (
+    echo [✓] Đã phát hiện Chrome CDP Port 9222 đang chạy sẵn.
+    goto RUN_MAIN
+)
 
-echo [+] Đã phát hiện Chrome CDP Port 9222 đang hoạt động!
-goto RUN_MAIN
-
-:LAUNCH_CHROME
+:: Nếu chưa chạy, chạy login_setup.py ngay tại cửa sổ này để chọn Profile
 echo [!] Chưa mở Chrome CDP Port 9222.
-echo [!] Đang tự động mở cửa sổ Chrome mới qua login_setup.py...
-start cmd /k "python login_setup.py"
-echo [!] Đang chờ Chrome sẵn sàng trong 5 giây...
-timeout /t 5 /nobreak > nul
+echo [!] Đang khởi động trình chọn Profile...
+echo --------------------------------------------
+python login_setup.py
+echo --------------------------------------------
 
 :RUN_MAIN
 echo.
-echo [!] Đang kết nối và khởi tạo Menu chính...
+echo [!] Đang kết nối Chrome và mở Menu chính...
 python main.py
 
 echo.
