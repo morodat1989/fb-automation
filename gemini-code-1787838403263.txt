@@ -1,0 +1,6 @@
+fb_tool/
+│
+├── app.py                # File chính chứa Flask server
+├── automation.py         # File chứa kịch bản tự động hóa Playwright
+└── templates/
+    └── index.html        # Giao diện web đơn giản

@@ -1,0 +1,19 @@
+D:\Tool\fb\
+├── main.py                   # Điểm điều khiển chính (CLI menu & Luồng chạy)
+├── login_setup.py            # Quản lý Chrome Profile & Kết nối CDP (Đã xong)
+├── config.json               # Lưu cấu hình hệ thống, tham số delay, đường dẫn
+├── core/
+│   ├── browser_manager.py    # Điều khiển trình duyệt, kiểm tra trạng thái Login/Live
+│   └── humanizer.py          # Giả lập hành vi người dùng (scroll, type, random delay)
+├── modules/
+│   ├── feed_actions.py       # Tương tác Newsfeed, Watch, Reels (Seeding cá nhân)
+│   ├── group_actions.py      # Tương tác Nhóm (Quét, Đăng bài, Comment)
+│   ├── message_actions.py    # Gửi tin nhắn, Nhắn tin theo danh sách UID
+│   └── friend_actions.py     # Kết bạn, Hủy kết bạn, Đồng ý kết bạn
+├── data/
+│   ├── profiles.json         # Danh sách & trạng thái các profile
+│   ├── comments.txt          # Mẫu comment/Nội dung seeding
+│   └── uids.txt              # Danh sách UID mục tiêu
+└── utils/
+    ├── logger.py             # Ghi log hoạt động & Báo cáo lỗi
+    └── selectors.py          # Tập hợp các Playwright Selectors (dễ cập nhật khi FB đổi giao diện)

@@ -1,0 +1,14 @@
+{
+  "cdp_port": 9222,
+  "chrome_exe": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "delays": {
+    "min_typing_ms": 40,
+    "max_typing_ms": 180,
+    "min_read_sec": 3,
+    "max_read_sec": 8
+  },
+  "scroll": {
+    "min_pixels": 300,
+    "max_pixels": 700
+  }
+}
