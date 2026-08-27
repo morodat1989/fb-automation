@@ -37,14 +37,10 @@ class AIProcessor:
         """
         try:
             response = self.client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    temperature=0.2
-                )
+                model='gemini-1.5-flash',
+                contents=prompt
             )
-
+              
             if not response or not response.text:
                 logger.warning("Gemini API trả về response trống hoặc bị chặn bởi Safety Filter.")
                 return self._default_fallback(raw_message)

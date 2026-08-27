@@ -12,6 +12,7 @@ load_dotenv(dotenv_path=BASE_DIR / ".env")
 # Environment & API Configurations
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 SPREADSHEET_NAME = os.getenv("SPREADSHEET_NAME", "BDS_Auto_Post")
+ZALO_URL = "https://chat.zalo.me"  # <--- THÊM DÒNG NÀY VÀO ĐÂY
 
 # File Paths
 CREDENTIALS_PATH = BASE_DIR / "key" / "credentials.json"

@@ -20,9 +20,17 @@ class FBPoster:
         with sync_playwright() as p:
             context = p.chromium.launch_persistent_context(
                 user_data_dir=str(BROWSER_PROFILE_DIR),
+                channel="chrome",
                 headless=headless,
                 viewport={'width': 1366, 'height': 768},
-                args=["--no-sandbox", "--disable-notifications", "--disable-blink-features=AutomationControlled"]
+                args=[
+                    "--no-sandbox",
+                    "--disable-notifications",
+                    "--disable-blink-features=AutomationControlled",
+                    "--enable-gpu",
+                    "--disable-dev-shm-usage",
+                    "--remote-debugging-port=9222"
+                ]
             )
             page = context.new_page()
             target_url = group_url if group_url else "https://www.facebook.com"

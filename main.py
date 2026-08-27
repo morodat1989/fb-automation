@@ -13,7 +13,7 @@ from config import BROWSER_PROFILE_DIR
 logger = logging.getLogger("MainRunner")
 
 def run_auto_pipeline() -> None:
-    logger.info("Kích hoạt Luồng Tự Động Trọn Gói (Auto Pipeline)...")
+    logger.info("Kích hoạt Luồng Tự Động Trọn Gói trên Google Chrome...")
     ai = AIProcessor()
     sheets = SheetsManager()
     listener = ZaloListener(ai_processor=ai, sheets_manager=sheets)
@@ -22,23 +22,29 @@ def run_auto_pipeline() -> None:
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(BROWSER_PROFILE_DIR),
+            channel="chrome",
             headless=False,
             viewport={'width': 1366, 'height': 768},
-            args=["--no-sandbox", "--disable-blink-features=AutomationControlled"]
+            args=[
+                "--no-sandbox",
+                "--disable-blink-features=AutomationControlled",
+                "--enable-gpu",
+                "--remote-debugging-port=9222"
+            ]
         )
         page = context.new_page()
         page.goto("https://chat.zalo.me", wait_until="domcontentloaded")
-        logger.info("[PIPELINE READY] Zalo Web đã sẵn sàng lắng nghe.")
+        logger.info("[PIPELINE READY] Zalo Web đã sẵn sàng trên Google Chrome.")
 
         last_fb_check = 0.0
-        fb_interval = 300.0  # Chu kỳ 5 phút quét Facebook 1 lần
+        fb_interval = 300.0  # Quét và đăng bài FB mỗi 5 phút
 
         try:
             while True:
                 # 1. Quét tin nhắn Zalo liên tục
                 listener.check_new_messages(page)
 
-                # 2. Định kỳ kiểm tra và đăng bài chờ trên Google Sheet
+                # 2. Định kỳ quét Google Sheet để đăng Facebook
                 now = time.time()
                 if now - last_fb_check > fb_interval:
                     logger.info("[PIPELINE] Bắt đầu chu kỳ quét Google Sheet đăng FB...")
@@ -69,7 +75,7 @@ def main() -> None:
     elif choice == '2':
         ai = AIProcessor()
         sheets = SheetsManager()
-        listener = ZaloListener(ai_processor=ai, sheets_manager=sheets)
+        listener = ZaloListener(ai_processor=ai, sheet_manager=sheets)
         listener.start_listening(headless=False)
     elif choice == '3':
         sheets = SheetsManager()
