@@ -1,12 +1,18 @@
 import json
 import os
+import sys
+
+# Đảm bảo import được các module trong utils
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from google import genai
 from google.genai import errors, types
+from utils.sheets_manager import SheetsManager
 
 # 1. Cấu hình Gemini API Key
 os.environ["GEMINI_API_KEY"] = "AIzaSyAF8uH-1Bq34CrmsPbLODLJnAXdcBpC-qc"
 
-# 2. Khởi tạo Client
+# 2. Khởi tạo Client Gemini
 client = genai.Client()
 
 # 3. Dữ liệu Zalo BĐS thô làm mẫu
@@ -20,7 +26,7 @@ Giá chốt 3.2 tỷ bao phí. Lh 0912345678 xem nhà 24/7.
 prompt = f"""
 Bạn là Chuyên gia Copywriter Bất động sản và Tối ưu hóa SEO Facebook Marketplace.
 
-Nhiệm vụ: Phân tích tin nhắn Zalo thô bên dưới và chuyển đổi thành cấu trúc JSON hợp lệ để lưu trữ vào Google Sheet và hỗ trợ tự động đăng bài.
+Nhiệm vụ: Phân tích tin nhắn Zalo thô bên dưới và chuyển đổi thành cấu trúc JSON hợp lệ để lưu trữ vào Google Sheet.
 
 Yêu cầu dữ liệu trong JSON:
 - title: Tiêu đề chuẩn SEO (dưới 65 ký tự, chứa từ khóa chính, địa điểm, giá bán).
@@ -42,7 +48,6 @@ response = None
 for model_name in MODELS_TO_TRY:
   try:
     print(f"Đang xử lý dữ liệu với model: {model_name}...")
-    # Cấu hình response_mime_type="application/json" để Gemini bắt buộc trả về JSON
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
@@ -63,17 +68,20 @@ for model_name in MODELS_TO_TRY:
     print(f"Lỗi không xác định: {e}")
     break
 
-# 6. Parse và kiểm tra dữ liệu JSON đầu ra
+# 6. Parse JSON và tự động đẩy vào Google Sheet
 if response and response.text:
   try:
     bds_data = json.loads(response.text)
-    print(
-        "================ DỮ LIỆU JSON CHUẨN ĐỂ LƯU SHEETS ================\n"
-    )
+    print("=== NỘI DUNG DỮ LIỆU ĐÃ TẠO ===")
     print(json.dumps(bds_data, ensure_ascii=False, indent=2))
-    print(
-        "\n=================================================================="
+    print("===============================\n")
+
+    # Gọi SheetsManager để ghi dữ liệu vào Google Sheet
+    sheets_tool = SheetsManager(
+        json_key_path="credentials.json", sheet_name="BDS_Auto_Post"
     )
+    sheets_tool.append_bds_data(bds_data, status="PENDING")
+
   except json.JSONDecodeError as e:
     print(f"Lỗi parse JSON: {e}")
     print("Nội dung gốc nhận từ API:")
