@@ -1,2 +1,3 @@
-2026/08/27-21:12:55.376 3cd0 Creating DB D:\Tool\fb\browser_profile\Default\GCM Store since it was missing.
-2026/08/27-21:12:55.379 3cd0 Reusing MANIFEST D:\Tool\fb\browser_profile\Default\GCM Store/MANIFEST-000001
+2026/08/28-02:16:59.550 2660 Reusing MANIFEST D:\Tool\fb\browser_profile\Default\GCM Store/MANIFEST-000001
+2026/08/28-02:16:59.551 2660 Recovering log #3
+2026/08/28-02:16:59.551 2660 Reusing old log D:\Tool\fb\browser_profile\Default\GCM Store/000003.log 

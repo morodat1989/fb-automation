@@ -1,2 +1,10 @@
-2026/08/27-21:12:50.161 2f04 Creating DB D:\Tool\fb\browser_profile\Default\Local Storage\leveldb since it was missing.
-2026/08/27-21:12:50.173 2f04 Reusing MANIFEST D:\Tool\fb\browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/28-02:16:53.477 62a4 Reusing MANIFEST D:\Tool\fb\browser_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/28-02:16:53.482 62a4 Recovering log #6
+2026/08/28-02:16:53.483 62a4 Level-0 table #9: started
+2026/08/28-02:16:53.489 62a4 Level-0 table #9: 90968 bytes OK
+2026/08/28-02:16:53.492 62a4 Delete type=0 #6
+2026/08/28-02:17:53.503 85c Level-0 table #12: started
+2026/08/28-02:17:53.506 85c Level-0 table #12: 38740 bytes OK
+2026/08/28-02:17:53.507 85c Delete type=0 #10
+2026/08/28-02:18:26.480 62a4 Level-0 table #14: started
+2026/08/28-02:18:26.500 62a4 Level-0 table #14: 42153 bytes OK

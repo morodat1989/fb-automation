@@ -1,4 +1,3 @@
-import os
 import time
 from playwright.sync_api import sync_playwright
 from config import BROWSER_PROFILE_DIR
@@ -13,25 +12,32 @@ def run_login_setup():
     choice = input("Lựa chọn của bạn (1/2/3): ").strip()
 
     with sync_playwright() as p:
-        # Khởi tạo browser với user_data_dir để giữ trạng thái đăng nhập
+        # Cấu hình bypass chống nhận diện tự động hóa để Zalo tải ảnh mượt mà
         context = p.chromium.launch_persistent_context(
             user_data_dir=str(BROWSER_PROFILE_DIR),
             headless=False,
-            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-notifications"]
+            viewport={'width': 1366, 'height': 768},
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled", # Giúp Zalo không chặn tải ảnh/CDN
+                "--start-maximized"
+            ]
         )
-        page = context.new_page()
 
         if choice in ['1', '3']:
-            print("\n[ZALO] Đang mở Zalo Web... Hãy quét mã QR / Đăng nhập.")
-            page.goto("https://chat.zalo.me")
-            input("Press ENTER sau khi đã đăng nhập thành công Zalo Web...")
+            print("\n[ZALO] Đang mở Zalo Web... Hãy quét mã QR và chờ đồng bộ ảnh.")
+            zalo_page = context.new_page()
+            zalo_page.goto("https://chat.zalo.me", wait_until="domcontentloaded")
+            input("\n>>> Sau khi đã đồng bộ và thấy ảnh hiện đầy đủ trên Zalo, nhấn ENTER...")
 
         if choice in ['2', '3']:
-            print("\n[FACEBOOK] Đang mở Facebook... Hãy đăng nhập tài khoản.")
-            page.goto("https://www.facebook.com")
-            input("Press ENTER sau khi đã đăng nhập thành công Facebook...")
+            print("\n[FACEBOOK] Đang mở Facebook ở Tab mới...")
+            fb_page = context.new_page() # Tách riêng tab mới, không đè lên tab Zalo
+            fb_page.goto("https://www.facebook.com", wait_until="domcontentloaded")
+            input("\n>>> Sau khi đã đăng nhập Facebook xong, nhấn ENTER tại đây...")
 
-        print("\n[SUCCESS] Đã lưu thông tin phiên làm việc vào 'browser_profile/'.")
+        print("\n[SUCCESS] Đã lưu thành công phiên làm việc vào 'browser_profile/'.")
         context.close()
 
 if __name__ == "__main__":

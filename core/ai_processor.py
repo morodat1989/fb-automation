@@ -1,14 +1,13 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from config import GEMINI_API_KEY
 
 class AIProcessor:
     def __init__(self):
         if not GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY chưa được thiết lập trong .env")
-        genai.configure(api_key=GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def process_zalo_message(self, raw_message: str) -> dict:
         """
@@ -29,17 +28,19 @@ class AIProcessor:
         }}
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+            )
             text_response = response.text.strip()
             
-            # Làm sạch mã JSON trả về từ Markdown
+            # Làm sạch mã JSON trả về
             if text_response.startswith("```json"):
                 text_response = text_response[7:-3].strip()
             elif text_response.startswith("```"):
                 text_response = text_response[3:-3].strip()
 
-            data = json.loads(text_response)
-            return data
+            return json.loads(text_response)
         except Exception as e:
             print(f"[AI ERROR] Lỗi khi xử lý với Gemini: {e}")
             return {
@@ -51,7 +52,6 @@ class AIProcessor:
             }
 
 if __name__ == "__main__":
-    # Test nhanh
     ai = AIProcessor()
-    test_res = ai.process_zalo_message("Bán nhà Cầu Giấy 50m2 x 5 tầng, giá 6.5 tỷ, ô tô đỗ cửa. LH 0987654321")
+    test_res = ai.process_zalo_message("Bán nhà Cầu Giấy 50m2 x 5 tầng, giá 6.5 tỷ, LH 0987654321")
     print(json.dumps(test_res, ensure_ascii=False, indent=2))
