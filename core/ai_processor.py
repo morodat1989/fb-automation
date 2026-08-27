@@ -1,84 +1,57 @@
-import json
 import os
-import sys
-from PIL import Image
+import json
+import google.generativeai as genai
+from config import GEMINI_API_KEY
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+class AIProcessor:
+    def __init__(self):
+        if not GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY chưa được thiết lập trong .env")
+        genai.configure(api_key=GEMINI_API_KEY)
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
 
-from google import genai
-from google.genai import types
-from utils.sheets_manager import SheetsManager
+    def process_zalo_message(self, raw_message: str) -> dict:
+        """
+        Phân tích tin nhắn Zalo bất động sản và tạo nội dung đăng Facebook
+        """
+        prompt = f"""
+        Bạn là một chuyên gia marketing bất động sản. Hãy phân tích tin nhắn thô sau từ Zalo:
+        "{raw_message}"
 
-NEW_GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-os.environ["GEMINI_API_KEY"] = os.getenv(
-    "GEMINI_API_KEY", NEW_GEMINI_API_KEY
-)
+        Hãy trích xuất thông tin và viết lại thành một bài đăng Facebook thu hút người mua.
+        Trả về kết quả dưới dạng JSON duy nhất với cấu trúc:
+        {{
+            "is_real_estate": true/false,
+            "title": "Tiêu đề ngắn thu hút",
+            "price": "Giá bán",
+            "location": "Vị trí",
+            "fb_content": "Nội dung bài đăng Facebook hoàn chỉnh kèm hashtag và icon"
+        }}
+        """
+        try:
+            response = self.model.generate_content(prompt)
+            text_response = response.text.strip()
+            
+            # Làm sạch mã JSON trả về từ Markdown
+            if text_response.startswith("```json"):
+                text_response = text_response[7:-3].strip()
+            elif text_response.startswith("```"):
+                text_response = text_response[3:-3].strip()
 
-client = genai.Client()
+            data = json.loads(text_response)
+            return data
+        except Exception as e:
+            print(f"[AI ERROR] Lỗi khi xử lý với Gemini: {e}")
+            return {
+                "is_real_estate": False,
+                "title": "",
+                "price": "",
+                "location": "",
+                "fb_content": raw_message
+            }
 
-
-def process_zalo_message(
-    zalo_raw: str,
-    image_paths: list = [],
-    loai_bds: str = "CHƯA_PHÂN_LOẠI",
-):
-  contents = []
-  valid_image_paths = []
-
-  for img_path in image_paths:
-    if os.path.exists(img_path):
-      try:
-        contents.append(Image.open(img_path))
-        valid_image_paths.append(os.path.abspath(img_path))
-      except Exception as e:
-        print(f"Không đọc được ảnh {img_path}: {e}")
-
-  prompt = f"""
-Bạn là Chuyên gia Copywriter Bất động sản và Tối ưu hóa SEO Facebook Marketplace.
-
-Nhiệm vụ: Phân tích tin nhắn Zalo thô thuộc phân loại [{loai_bds}] và các hình ảnh đính kèm để trích xuất dữ liệu chuẩn hóa dạng JSON.
-
-Yêu cầu các khóa JSON bằng tiếng Việt:
-- tieu_de: Tiêu đề chuẩn SEO (dưới 65 ký tự, chứa từ khóa chính, địa điểm, giá).
-- gia: Giá niêm yết ngắn gọn (ví dụ: "3.2 tỷ" hoặc "15 triệu/tháng").
-- dien_tich: Diện tích (ví dụ: "55m²").
-- dia_chi: Địa chỉ/Dự án ngắn gọn.
-- mo_ta_marketplace: Nội dung mô tả tối giản cho FB Marketplace.
-- mo_ta_hoinhom: Nội dung mô tả chi tiết thu hút cho FB Group.
-- tu_khoa: Mảng chứa 3-5 từ khóa SEO tìm kiếm.
-
-Nội dung Zalo:
-{zalo_raw}
-"""
-  contents.append(prompt)
-
-  MODELS_TO_TRY = ["gemini-3.6-flash", "gemini-1.5-flash"]
-  response = None
-
-  for model_name in MODELS_TO_TRY:
-    try:
-      response = client.models.generate_content(
-          model=model_name,
-          contents=contents,
-          config=types.GenerateContentConfig(
-              response_mime_type="application/json"
-          ),
-      )
-      break
-    except Exception as e:
-      print(f"Lỗi AI ({model_name}): {e}")
-
-  if response and response.text:
-    try:
-      bds_data = json.loads(response.text)
-      sheets_tool = SheetsManager(
-          json_key_path="key/credentials.json", sheet_name="BDS_Auto_Post"
-      )
-      sheets_tool.append_bds_data(
-          bds_data=bds_data,
-          image_paths=valid_image_paths,
-          status="CHỜ_ĐĂNG",
-          loai_bds=loai_bds,
-      )
-    except json.JSONDecodeError as e:
-      print(f"Lỗi parse JSON từ Gemini: {e}")
+if __name__ == "__main__":
+    # Test nhanh
+    ai = AIProcessor()
+    test_res = ai.process_zalo_message("Bán nhà Cầu Giấy 50m2 x 5 tầng, giá 6.5 tỷ, ô tô đỗ cửa. LH 0987654321")
+    print(json.dumps(test_res, ensure_ascii=False, indent=2))

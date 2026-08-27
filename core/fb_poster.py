@@ -1,82 +1,58 @@
-import os
-import sys
 import time
 from playwright.sync_api import sync_playwright
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import BROWSER_PROFILE_DIR
 from utils.sheets_manager import SheetsManager
 
-PROFILE_DIR = os.path.abspath("fb_session")
+class FBPoster:
+    def __init__(self, sheets_manager: SheetsManager):
+        self.sheets = sheets_manager
 
+    def post_pending_items(self, group_url: str = None, headless=False):
+        pending_list = self.sheets.get_pending_posts()
+        if not pending_list:
+            print("[FB POSTER] Không có bài viết nào chờ đăng.")
+            return
 
-def run_auto_poster(target_loai_bds: str = None):
-  sheets_tool = SheetsManager(
-      json_key_path="key/credentials.json", sheet_name="BDS_Auto_Post"
-  )
+        print(f"[FB POSTER] Tìm thấy {len(pending_list)} bài chờ đăng.")
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=str(BROWSER_PROFILE_DIR),
+                headless=headless,
+                args=["--no-sandbox", "--disable-notifications"]
+            )
+            page = context.new_page()
 
-  if target_loai_bds:
-    print(f"-> Đang lọc danh sách bài CHỜ_ĐĂNG thuộc loại: [{target_loai_bds}]")
-  else:
-    print("-> Đang lấy TOÀN BỘ bài CHỜ_ĐĂNG...")
+            target_url = group_url if group_url else "https://www.facebook.com"
+            page.goto(target_url)
+            page.wait_for_timeout(5000)
 
-  posts = sheets_tool.get_pending_posts(loai_bds_filter=target_loai_bds)
+            for item in pending_list:
+                content = item.get("Bài Đăng FB")
+                row_idx = item.get("row_index")
+                
+                if not content:
+                    continue
 
-  if not posts:
-    print("-> Không tìm thấy bài nào thỏa mãn điều kiện để đăng.")
-    return
+                try:
+                    print(f"[FB POSTER] Đang đăng bài cho dòng {row_idx}...")
+                    # Click vào ô tạo bài viết Facebook
+                    page.click("text=Bạn đang nghĩ gì?")
+                    page.wait_for_timeout(2000)
+                    
+                    # Điền nội dung bài viết
+                    page.fill("div[role='textbox']", content)
+                    page.wait_for_timeout(2000)
+                    
+                    # Click nút Đăng
+                    page.click("div[aria-label='Đăng']")
+                    page.wait_for_timeout(5000)
 
-  print(f"-> Tìm thấy {len(posts)} bài chờ đăng.")
+                    # Cập nhật trạng thái trên Google Sheet
+                    self.sheets.update_post_status(row_idx, "Đã đăng")
+                    print(f"[FB POSTER] Đăng bài dòng {row_idx} thành công!")
 
-  with sync_playwright() as p:
-    browser = p.chromium.launch_persistent_context(
-        user_data_dir=PROFILE_DIR,
-        headless=False,
-        args=["--start-maximized"],
-    )
-    page = browser.pages[0] if browser.pages else browser.new_page()
+                except Exception as e:
+                    print(f"[FB POSTER ERROR] Lỗi đăng bài dòng {row_idx}: {e}")
+                    self.sheets.update_post_status(row_idx, f"Lỗi: {str(e)[:30]}")
 
-    for item in posts:
-      print("\n==========================================")
-      print(
-          f"ĐANG ĐĂNG BÀI [{item['loai_bds']}]: {item['tieu_de']} (Hàng"
-          f" {item['row_index']})"
-      )
-
-      try:
-        # Giả lập thời gian thực thi đăng bài
-        time.sleep(3)
-
-        # Cập nhật trạng thái bài viết sau khi đăng xong thành công
-        sheets_tool.update_post_status(item["row_index"], status="ĐÃ_ĐĂNG")
-        print(f"-> Đã cập nhật trạng thái ĐÃ_ĐĂNG cho hàng {item['row_index']}")
-
-      except Exception as e:
-        print(f"Lỗi khi đăng bài hàng {item['row_index']}: {e}")
-
-    browser.close()
-
-
-if __name__ == "__main__":
-  if len(sys.argv) > 1:
-    selected_loai = sys.argv[1]
-  else:
-    print("--- CHỌN LOẠI BĐS CẦN ĐĂNG HÔM NAY ---")
-    print("1. CHO_THUÊ")
-    print("2. BÁN_CAO_CẤP")
-    print("3. BÁN_ĐẦU_THẤP")
-    print("4. MẶT_PHỐ_ĐẤT_NỀN")
-    print("5. BUNG_LỤA")
-    print("6. ĐĂNG TẤT CẢ")
-
-    choice = input("Nhập lựa chọn (1-6 hoặc gõ tên trực tiếp): ").strip()
-    mapping = {
-        "1": "CHO_THUÊ",
-        "2": "BÁN_CAO_CẤP",
-        "3": "BÁN_ĐẦU_THẤP",
-        "4": "MẶT_PHỐ_ĐẤT_NỀN",
-        "5": "BUNG_LỤA",
-        "6": None,
-    }
-    selected_loai = mapping.get(choice, choice if choice else None)
-
-  run_auto_poster(target_loai_bds=selected_loai)
+            context.close()

@@ -1,41 +1,57 @@
-import asyncio
-from core.browser_manager import connect_cdp, close_cdp
-from modules.feed_actions import run_feed_seeding
-from modules.reels_actions import run_reels_seeding  # 1. THÊM IMPORT Ở ĐẦU FILE
-from utils.logger import log_info, log_error
+import sys
+import os
 
-async def main():
-    # Kết nối tới Chrome đang mở qua CDP Port 9222
-    browser, context, page = await connect_cdp()
-    if not page:
-        log_error("Không thể kết nối Chrome CDP!")
-        return
+from login_setup import run_login_setup
+from core.ai_processor import AIProcessor
+from utils.sheets_manager import SheetsManager
+from core.zalo_listener import ZaloListener
+from core.fb_poster import FBPoster
 
-    while True:
-        print("\n==========================================")
-        print("   SYSTEM FACEBOOK AUTOMATION MENU        ")
-        print("==========================================")
-        print("1. Seeding Newsfeed (Lướt, Like, Comment)")
-        print("2. Seeding Reels (Lướt Reels, Thả tim, Comment)") # In menu lựa chọn
-        print("0. Thoát chương trình")
-        print("==========================================")
-        
-        choice = input("👉 Nhập lựa chọn của bạn (0-2): ").strip()
+def main():
+    print("==================================================")
+    print("      HỆ THỐNG TỰ ĐỘNG HÓA ZALO -> FB POSTER      ")
+    print("==================================================")
+    print("1. [Setup] Đăng nhập & Tạo Session (Zalo/Facebook)")
+    print("2. [Run] Lắng nghe Zalo -> AI Xử lý -> Lưu Sheet")
+    print("3. [Run] Đọc Sheet -> Đăng bài tự động lên Facebook")
+    print("4. [Auto] Luồng tự động trọn gói (Listener + Auto Post)")
+    print("5. Thoát")
+    print("==================================================")
+    
+    choice = input("Nhập lựa chọn của bạn (1-5): ").strip()
 
-        if choice == "1":
-            await run_feed_seeding(page)
-            
-        elif choice == "2":
-            # 2. THÊM KHỐI LỰA CHỌN NÀY NGAY SAU CHOICE == "1"
-            await run_reels_seeding(page, total_reels=8)
-            
-        elif choice == "0":
-            log_info("Đang thoát chương trình...")
-            break
-        else:
-            print("❌ Lựa chọn không hợp lệ. Vui lòng thử lại!")
+    if choice == '1':
+        run_login_setup()
 
-    await close_cdp(browser)
+    elif choice == '2':
+        ai = AIProcessor()
+        sheets = SheetsManager()
+        listener = ZaloListener(ai_processor=ai, sheets_manager=sheets)
+        listener.start_listening(headless=False)
+
+    elif choice == '3':
+        sheets = SheetsManager()
+        poster = FBPoster(sheets_manager=sheets)
+        group_url = input("Nhập URL nhóm/Trang FB muốn đăng (để trống nếu đăng Wall cá nhân): ").strip()
+        poster.post_pending_items(group_url=group_url if group_url else None, headless=False)
+
+    elif choice == '4':
+        print("\n[AUTO PIPELINE] Đang kích hoạt luồng tự động...")
+        ai = AIProcessor()
+        sheets = SheetsManager()
+        listener = ZaloListener(ai_processor=ai, sheets_manager=sheets)
+        poster = FBPoster(sheets_manager=sheets)
+
+        # Chạy listener trước
+        listener.start_listening(headless=False)
+        # Sau khi dừng Listener (Ctrl+C), chạy poster
+        poster.post_pending_items(headless=False)
+
+    elif choice == '5':
+        print("Đã thoát chương trình.")
+        sys.exit(0)
+    else:
+        print("Lựa chọn không hợp lệ!")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
