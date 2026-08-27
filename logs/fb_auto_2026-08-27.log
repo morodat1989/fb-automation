@@ -1,0 +1,60 @@
+[22:21:46] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:23:00] [INFO] [Main]: Bắt đầu thực thi kịch bản Feed Actions...
+[22:23:00] [INFO] [BrowserManager]: Đang kết nối tới Chrome qua CDP: http://localhost:9222...
+[22:23:00] [ERROR] [BrowserManager]: Lỗi kết nối CDP tới http://localhost:9222: BrowserType.connect_over_cdp: connect ECONNREFUSED ::1:9222
+Call log:
+  - <ws preparing> retrieving websocket url from http://localhost:9222
+
+[22:23:00] [WARNING] [BrowserManager]: Vui lòng khởi chạy Profile Chrome từ Menu [1] trước khi chạy kịch bản.
+[22:23:00] [INFO] [BrowserManager]: Đã giải phóng kết nối Playwright CDP.
+[22:26:00] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:26:18] [INFO] [Main]: Bắt đầu thực thi kịch bản Feed Actions...
+[22:26:18] [INFO] [BrowserManager]: Đang kết nối tới Chrome qua CDP: http://127.0.0.1:9222...
+[22:26:18] [ERROR] [BrowserManager]: Lỗi kết nối CDP tới http://127.0.0.1:9222: BrowserType.connect_over_cdp: connect ECONNREFUSED 127.0.0.1:9222
+Call log:
+  - <ws preparing> retrieving websocket url from http://127.0.0.1:9222
+
+[22:26:18] [WARNING] [BrowserManager]: Vui lòng khởi chạy Profile Chrome từ Menu [1] trước khi chạy kịch bản.
+[22:26:18] [INFO] [BrowserManager]: Đã giải phóng kết nối Playwright CDP.
+[22:34:47] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:35:10] [INFO] [Main]: Bắt đầu thực thi kịch bản Feed Actions...
+[22:35:12] [ERROR] [BrowserManager]: Cổng 9222 chưa được mở! Chrome chưa khởi chạy.
+[22:35:12] [WARNING] [BrowserManager]: Vui lòng khởi chạy Profile Chrome từ Menu [1] trước khi chọn chạy kịch bản.
+[22:36:53] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:40:41] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:41:21] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:43:45] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:43:56] [INFO] [Main]: Bắt đầu thực thi kịch bản Feed Actions...
+[22:43:58] [ERROR] [BrowserManager]: Cổng 9222 chưa được mở! Chrome chưa khởi chạy.
+[22:43:58] [WARNING] [BrowserManager]: Vui lòng khởi chạy Profile Chrome từ Menu [1] trước khi chọn chạy kịch bản.
+[22:44:01] [INFO] [Main]: Đã thoát chương trình.
+[22:44:09] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:46:42] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:46:51] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:50:23] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:52:40] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:55:28] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[22:58:15] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[23:00:27] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[23:01:26] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[23:05:18] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[23:05:31] [INFO] [Main]: Đã khởi tạo hệ thống thành công.
+[23:07:22] [INFO] [Main]: Bắt đầu thực thi kịch bản Feed Actions...
+[23:07:22] [INFO] [BrowserManager]: Đang kết nối tới Chrome qua CDP: http://127.0.0.1:9222...
+[23:07:22] [INFO] [BrowserManager]: Kết nối CDP thành công!
+[23:07:22] [INFO] [FeedActions]: Bắt đầu lướt Newsfeed (6 lượt cuộn)...
+[23:07:22] [INFO] [FeedActions]: --- Lượt cuộn 1/6 ---
+[23:07:23] [INFO] [Humanizer]: Đã cuộn trang down 627px.
+[23:07:31] [INFO] [FeedActions]: --- Lượt cuộn 2/6 ---
+[23:07:32] [INFO] [Humanizer]: Đã cuộn trang down 617px.
+[23:07:39] [INFO] [FeedActions]: --- Lượt cuộn 3/6 ---
+[23:07:40] [INFO] [Humanizer]: Đã cuộn trang down 671px.
+[23:07:46] [INFO] [FeedActions]: --- Lượt cuộn 4/6 ---
+[23:07:47] [INFO] [Humanizer]: Đã cuộn trang down 734px.
+[23:07:54] [INFO] [FeedActions]: --- Lượt cuộn 5/6 ---
+[23:07:55] [INFO] [Humanizer]: Đã cuộn trang down 456px.
+[23:08:00] [INFO] [FeedActions]: --- Lượt cuộn 6/6 ---
+[23:08:00] [INFO] [Humanizer]: Đã cuộn trang down 467px.
+[23:08:06] [INFO] [FeedActions]: Hoàn tất kịch bản tương tác Newsfeed.
+[23:08:06] [INFO] [BrowserManager]: Đã giải phóng kết nối Playwright CDP (Chrome vẫn chạy bình thường).
+[23:12:22] [INFO] [Main]: Đã khởi tạo hệ thống thành công.

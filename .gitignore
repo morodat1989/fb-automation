@@ -1,5 +1,11 @@
+# Bỏ qua các file chứa API Key và Credentials bảo mật
+credentials.json
+key/credentials.json
+key/
+*.json
+
+# Bỏ qua môi trường ảo Python và cache
 __pycache__/
-browser_profile/
-*.log
+*.pyc
+venv/
 .env
-data/profiles.json
