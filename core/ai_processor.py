@@ -1,12 +1,13 @@
 import os
 import json
 from google import genai
+from google.genai import types
 from config import GEMINI_API_KEY
 
 class AIProcessor:
     def __init__(self):
         if not GEMINI_API_KEY:
-            raise ValueError("GEMINI_API_KEY chưa được thiết lập trong .env")
+            raise ValueError("GEMINI_API_KEY chưa được thiết lập trong file .env")
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def process_zalo_message(self, raw_message: str) -> dict:
@@ -31,16 +32,25 @@ class AIProcessor:
             response = self.client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
             )
-            text_response = response.text.strip()
             
-            # Làm sạch mã JSON trả về
-            if text_response.startswith("```json"):
-                text_response = text_response[7:-3].strip()
-            elif text_response.startswith("```"):
-                text_response = text_response[3:-3].strip()
+            # An toàn chống crash nếu Gemini chặn safety filter
+            if not response or not response.text:
+                print("[AI WARNING] AI không trả về văn bản (có thể bị chặn bởi bộ lọc nội dung).")
+                return {
+                    "is_real_estate": False,
+                    "title": "",
+                    "price": "",
+                    "location": "",
+                    "fb_content": raw_message
+                }
 
+            text_response = response.text.strip()
             return json.loads(text_response)
+
         except Exception as e:
             print(f"[AI ERROR] Lỗi khi xử lý với Gemini: {e}")
             return {
