@@ -1,11 +1,8 @@
-# Bỏ qua các file chứa API Key và Credentials bảo mật
-credentials.json
 key/credentials.json
-key/
-*.json
-
-# Bỏ qua môi trường ảo Python và cache
+browser_profile/
+zalo_session/
+fb_session/
+images/
+.env
 __pycache__/
 *.pyc
-venv/
-.env

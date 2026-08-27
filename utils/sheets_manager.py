@@ -1,3 +1,4 @@
+import datetime
 import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -15,11 +16,9 @@ class SheetsManager:
     self.sheet = None
 
   def connect(self) -> bool:
-    """Kết nối tới Google Sheets API."""
     if not os.path.exists(self.json_key_path):
       print(
-          f"Lỗi: Không tìm thấy file '{self.json_key_path}'. Hãy đảm bảo bạn"
-          " đã đặt file credentials.json vào thư mục key/"
+          f"Lỗi: Không tìm thấy file khóa bảo mật tại '{self.json_key_path}'"
       )
       return False
 
@@ -33,34 +32,95 @@ class SheetsManager:
       )
       client = gspread.authorize(creds)
       self.sheet = client.open(self.sheet_name).sheet1
-      print(f"-> Kết nối thành công tới Google Sheet: '{self.sheet_name}'")
       return True
     except Exception as e:
       print(f"Lỗi kết nối Google Sheet: {e}")
       return False
 
   def append_bds_data(
-      self, bds_data: dict, status: str = "PENDING"
+      self,
+      bds_data: dict,
+      image_paths: list = [],
+      status: str = "CHỜ_ĐĂNG",
+      loai_bds: str = "CHƯA_PHÂN_LOẠI",
   ) -> bool:
-    """Ghi một dòng dữ liệu bài đăng BĐS vào dòng cuối cùng của Trang tính."""
-    if not self.sheet:
-      if not self.connect():
-        return False
+    if not self.sheet and not self.connect():
+      return False
 
     try:
+      current_time = datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
+
       row = [
-          bds_data.get("title", ""),
-          bds_data.get("price", ""),
-          bds_data.get("area", ""),
-          bds_data.get("address", ""),
-          bds_data.get("marketplace_description", ""),
-          bds_data.get("group_description", ""),
-          ", ".join(bds_data.get("keywords", [])),
-          status,  # Trạng thái để tool tự động đăng nhận biết (PENDING / SUCCESS)
+          bds_data.get("tieu_de", ""),  # Cột A: Tiêu đề
+          bds_data.get("gia", ""),  # Cột B: Giá
+          bds_data.get("dien_tich", ""),  # Cột C: Diện tích
+          bds_data.get("dia_chi", ""),  # Cột D: Địa chỉ
+          bds_data.get("mo_ta_marketplace", ""),  # Cột E: Mô tả Marketplace
+          bds_data.get("mo_ta_hoinhom", ""),  # Cột F: Mô tả Hội nhóm
+          ", ".join(bds_data.get("tu_khoa", [])),  # Cột G: Từ khóa SEO
+          status,  # Cột H: Trạng thái
+          ";".join(image_paths),  # Cột I: Đường dẫn ảnh
+          current_time,  # Cột J: Thời gian đăng
+          loai_bds,  # Cột K: Loại BĐS
       ]
       self.sheet.append_row(row)
-      print("-> ĐÃ LƯU THÀNH CÔNG VÀO GOOGLE SHEET!")
+      print(
+          f"-> ĐÃ LƯU VÀO SHEET: [{loai_bds}] |"
+          f" {bds_data.get('tieu_de', '')}"
+      )
       return True
     except Exception as e:
-      print(f"Lỗi khi ghi dòng vào Google Sheet: {e}")
+      print(f"Lỗi khi ghi dữ liệu vào Sheet: {e}")
+      return False
+
+  def get_pending_posts(self, loai_bds_filter: str = None) -> list:
+    """Lấy các bài 'CHỜ_ĐĂNG', lọc theo Loại BĐS nếu có chỉ định."""
+    if not self.sheet and not self.connect():
+      return []
+
+    try:
+      all_rows = self.sheet.get_all_values()
+      pending_list = []
+
+      # Bỏ qua hàng tiêu đề A1:K1 (index 0)
+      for idx, row in enumerate(all_rows[1:], start=2):
+        if len(row) < 8:
+          continue
+
+        status = row[7].strip()
+        loai = row[10].strip() if len(row) >= 11 else ""
+
+        if status == "CHỜ_ĐĂNG":
+          if loai_bds_filter is None or loai == loai_bds_filter:
+            pending_list.append({
+                "row_index": idx,
+                "tieu_de": row[0],
+                "gia": row[1],
+                "dien_tich": row[2],
+                "dia_chi": row[3],
+                "mo_ta_marketplace": row[4],
+                "mo_ta_hoinhom": row[5],
+                "tu_khoa": row[6],
+                "status": row[7],
+                "image_paths": row[8].split(";") if row[8] else [],
+                "time": row[9] if len(row) >= 10 else "",
+                "loai_bds": loai,
+            })
+      return pending_list
+    except Exception as e:
+      print(f"Lỗi đọc dữ liệu từ Sheet: {e}")
+      return []
+
+  def update_post_status(
+      self, row_index: int, status: str = "ĐÃ_ĐĂNG"
+  ) -> bool:
+    """Cập nhật Trạng thái tại Cột H (Cột 8)."""
+    if not self.sheet and not self.connect():
+      return False
+
+    try:
+      self.sheet.update_cell(row_index, 8, status)
+      return True
+    except Exception as e:
+      print(f"Lỗi cập nhật trạng thái hàng {row_index}: {e}")
       return False
