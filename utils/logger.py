@@ -1,22 +1,20 @@
-import logging
 import sys
-from pathlib import Path
 from datetime import datetime
 
-LOGS_DIR = Path("D:/Tool/fb/logs")
-LOGS_DIR.mkdir(parents=True, exist_ok=True)
+def _get_time():
+    return datetime.now().strftime("%H:%M:%S")
 
-log_filename = LOGS_DIR / f"fb_auto_{datetime.now().strftime('%Y-%m-%d')}.log"
+def log_info(message: str):
+    print(f"[{_get_time()}] [INFO] {message}")
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",
-    datefmt="%H:%M:%S",
-    handlers=[
-        logging.FileHandler(log_filename, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+def log_warning(message: str):
+    print(f"[{_get_time()}] [WARNING] ⚠️ {message}")
 
-def get_logger(name: str) -> logging.Logger:
-    return logging.getLogger(name)
+def log_error(message: str):
+    print(f"[{_get_time()}] [ERROR] ❌ {message}", file=sys.stderr)
+
+def log_success(message: str):
+    print(f"[{_get_time()}] [SUCCESS] ✅ {message}")
+
+def log_debug(message: str):
+    print(f"[{_get_time()}] [DEBUG] {message}")
