@@ -7,7 +7,7 @@ class SheetsManager:
 
   def __init__(
       self,
-      json_key_path: str = "credentials.json",
+      json_key_path: str = "key/credentials.json",
       sheet_name: str = "BDS_Auto_Post",
   ):
     self.json_key_path = json_key_path
@@ -18,8 +18,8 @@ class SheetsManager:
     """Kết nối tới Google Sheets API."""
     if not os.path.exists(self.json_key_path):
       print(
-          f"Lỗi: Không tìm thấy file '{self.json_key_path}'. Hãy đảm bảo bạn đã"
-          " đặt file credentials.json vào thư mục D:\\Tool\\fb"
+          f"Lỗi: Không tìm thấy file '{self.json_key_path}'. Hãy đảm bảo bạn"
+          " đã đặt file credentials.json vào thư mục key/"
       )
       return False
 
@@ -39,7 +39,9 @@ class SheetsManager:
       print(f"Lỗi kết nối Google Sheet: {e}")
       return False
 
-  def append_bds_data(self, bds_data: dict, status: str = "PENDING") -> bool:
+  def append_bds_data(
+      self, bds_data: dict, status: str = "PENDING"
+  ) -> bool:
     """Ghi một dòng dữ liệu bài đăng BĐS vào dòng cuối cùng của Trang tính."""
     if not self.sheet:
       if not self.connect():

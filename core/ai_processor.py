@@ -78,7 +78,7 @@ if response and response.text:
 
     # Gọi SheetsManager để ghi dữ liệu vào Google Sheet
     sheets_tool = SheetsManager(
-        json_key_path="credentials.json", sheet_name="BDS_Auto_Post"
+        json_key_path="key/credentials.json", sheet_name="BDS_Auto_Post"
     )
     sheets_tool.append_bds_data(bds_data, status="PENDING")
 
